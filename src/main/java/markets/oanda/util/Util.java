@@ -2,24 +2,45 @@ package markets.oanda.util;
 
 import markets.api.BrokerAPI;
 import markets.api.Candlestick;
+import markets.api.CandlestickData;
 import markets.api.RequestException;
 import markets.oanda.OandaAPI;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static java.time.Month.APRIL;
+import static java.time.Month.JANUARY;
 
 public class Util {
 
-    public static void main(String[] args) throws RequestException {
+    public static void main(String[] args) throws RequestException, IOException {
         BrokerAPI api = OandaAPI.create();
 
-        LocalDateTime from = LocalDateTime.of(2020, APRIL, 15, 3, 0);
-        LocalDateTime to = LocalDateTime.of(2020, APRIL, 15, 9, 0);
+        LocalDateTime from = LocalDateTime.of(2010, JANUARY, 1, 0, 0);
+        LocalDateTime to = LocalDateTime.of(2020, JANUARY, 1, 0, 0);
 
-        List<Candlestick> candles = api.candles("EUR_USD", from, to);
-        candles.forEach(System.out::println);
+        StringBuilder sb = new StringBuilder();
+
+        String symbol = "GBP_USD";
+        List<Candlestick> candles = api.candles(symbol, from, to);
+        candles.forEach(it -> {
+            CandlestickData bid = it.getBid();
+            CandlestickData ask = it.getAsk();
+            sb.append(it.getUtcTime()).append(",")
+                    .append(bid.getOpen()).append(",")
+                    .append(bid.getHigh()).append(",")
+                    .append(bid.getLow()).append(",")
+                    .append(bid.getClose()).append(",")
+                    .append(ask.getOpen()).append(",")
+                    .append(ask.getHigh()).append(",")
+                    .append(ask.getLow()).append(",")
+                    .append(ask.getClose()).append("\n");
+        });
+
+        Files.write(new File(symbol + "-2010-2020.csv").toPath(), sb.toString().getBytes());
     }
 
 }

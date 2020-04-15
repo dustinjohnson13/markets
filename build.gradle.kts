@@ -47,5 +47,5 @@ tasks.withType<Test> {
 }
 
 application {
-    mainClassName = "markets.RunIt"
+    mainClassName = "markets.live.Runner"
 }
