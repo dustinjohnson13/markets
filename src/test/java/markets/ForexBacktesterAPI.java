@@ -58,25 +58,7 @@ public class ForexBacktesterAPI implements BrokerAPI {
                 continue;
             }
 
-            BigDecimal profitLoss = null;
-            if (order.getUnits() > 0) {
-                if (price.getCloseoutBid().compareTo(order.getStopLoss()) <= 0) {
-                    profitLoss = order.getStopLoss().subtract(order.getPrice())
-                            .multiply(BigDecimal.valueOf(order.getUnits()));
-                } else if (price.getCloseoutBid().compareTo(order.getTakeProfit()) >= 0) {
-                    profitLoss = order.getTakeProfit().subtract(order.getPrice())
-                            .multiply(BigDecimal.valueOf(order.getUnits()));
-                }
-            } else {
-                if (price.getCloseoutAsk().compareTo(order.getStopLoss()) >= 0) {
-                    profitLoss = order.getPrice().subtract(order.getStopLoss())
-                            .multiply(BigDecimal.valueOf(order.getUnits()));
-                } else if (price.getCloseoutAsk().compareTo(order.getTakeProfit()) <= 0) {
-                    profitLoss = order.getPrice().subtract(order.getTakeProfit())
-                            .multiply(BigDecimal.valueOf(order.getUnits()));
-                }
-            }
-
+            BigDecimal profitLoss = order.profitLoss(price);
             if (profitLoss != null) {
                 iter.remove();
                 Account oldAccount = account(accountId);
@@ -108,7 +90,7 @@ public class ForexBacktesterAPI implements BrokerAPI {
     @Override
     public void marketOrder(String accountId, String symbol, int units, BigDecimal stopLoss, BigDecimal takeProfit) throws RequestException {
         Price price = price(accountId, symbol);
-        BigDecimal currentPrice = units > 1 ? price.getCloseoutBid() : price.getCloseoutAsk();
+        BigDecimal currentPrice = units > 1 ? price.getCloseoutAsk() : price.getCloseoutBid();
 //        BigDecimal costBasis = currentPrice.multiply(BigDecimal.valueOf(abs(units)));
 
         Account account = account(accountId);

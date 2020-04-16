@@ -9,7 +9,12 @@ stage('Test') {
         currentBuild.result = "SUCCESS"
 
         try {
-            sh './gradlew run'
+            sh './gradlew clean run'
+            try {
+                sh './gradlew build'
+            } finally {
+                junit "build/test-results/**/*.xml"
+            }
         } catch (err) {
             currentBuild.result = "FAILURE"
 
