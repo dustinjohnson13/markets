@@ -91,7 +91,7 @@ public class CheckMarkets {
             }
 
             boolean shortInstrument = new Random().nextBoolean();
-            BigDecimal price = shortInstrument ? prices.getCloseoutAsk() : prices.getCloseoutBid();
+            BigDecimal price = shortInstrument ? prices.getCloseoutBid() : prices.getCloseoutAsk();
 
             BigDecimal balanceDollars = account.getBalance();
             int units = balanceDollars
