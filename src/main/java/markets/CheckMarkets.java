@@ -5,7 +5,6 @@ import markets.api.BrokerAPI;
 import markets.api.MarketClock;
 import markets.api.Price;
 import markets.api.RequestException;
-import markets.oanda.OandaAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,11 +24,9 @@ public class CheckMarkets {
     private static final String EUR_USD = "EUR_USD";
     private static final String GBP_USD = "GBP_USD";
 
-    public void run(MarketClock clock) {
+    public void run(MarketClock clock, BrokerAPI api) {
 
         LOG.info("Current time: {}", clock.nowUTCDateTime());
-
-        BrokerAPI api = OandaAPI.create();
 
         List<String> accountIds = Arrays.asList(
                 "101-001-14085577-002", // Coin Toss 50/100

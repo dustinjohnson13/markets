@@ -1,7 +1,9 @@
 package markets.live;
 
 import markets.CheckMarkets;
+import markets.api.BrokerAPI;
 import markets.api.MarketClock;
+import markets.oanda.OandaAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,8 +15,9 @@ public class Runner {
 
     public static void main(String[] args) {
         MarketClock clock = new MarketClock(systemUTC());
+        BrokerAPI api = OandaAPI.create();
 
-        new CheckMarkets().run(clock);
+        new CheckMarkets().run(clock, api);
     }
 
 }

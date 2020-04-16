@@ -57,7 +57,7 @@ public class OandaAPI implements BrokerAPI {
     public Account account(String id) throws RequestException {
         try {
             com.oanda.v20.account.Account oandaAccount = context.account.get(new AccountID(id)).getAccount();
-            return new Account(oandaAccount.getOpenPositionCount().intValue(), oandaAccount.getBalance().bigDecimalValue());
+            return new Account(id, oandaAccount.getOpenPositionCount().intValue(), oandaAccount.getBalance().bigDecimalValue());
         } catch (Exception e) {
             throw new RequestException("Unable to retrieve account " + id, e);
         }
