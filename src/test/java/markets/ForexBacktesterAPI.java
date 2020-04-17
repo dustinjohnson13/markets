@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 
+import static java.util.Comparator.comparing;
+
 public class ForexBacktesterAPI implements BrokerAPI {
 
     private static final BigDecimal INITIAL_BALANCE = BigDecimal.valueOf(100);
@@ -50,15 +52,15 @@ public class ForexBacktesterAPI implements BrokerAPI {
             String accountId = entry.getKey();
             Order order = entry.getValue();
 
-            Price price;
+            Candlestick candlestick;
             try {
-                price = price(accountId, order.getSymbol());
+                candlestick = getCandlestick(order.getSymbol(), marketClock.nowUTCDateTime());
             } catch (RequestException e) {
                 // No data for this symbol + time
                 continue;
             }
 
-            BigDecimal profitLoss = order.profitLoss(price);
+            BigDecimal profitLoss = order.profitLoss(candlestick);
             if (profitLoss != null) {
                 iter.remove();
                 Account oldAccount = account(accountId);
@@ -79,10 +81,7 @@ public class ForexBacktesterAPI implements BrokerAPI {
     public Price price(String accountId, String symbol) throws RequestException {
         LocalDateTime now = marketClock.nowUTCDateTime();
 
-        Candlestick candlestick = dataForSymbol(symbol).get(now);
-        if (candlestick == null) {
-            throw new RequestException("No data for " + now, new IllegalArgumentException());
-        }
+        Candlestick candlestick = getCandlestick(symbol, now);
 
         return new Price(candlestick.getBid().getOpen(), candlestick.getAsk().getOpen());
     }
@@ -106,11 +105,23 @@ public class ForexBacktesterAPI implements BrokerAPI {
         return null;
     }
 
+    public void printAccounts() {
+        accountById.values()
+                .stream()
+                .sorted(comparing(Account::getId))
+                .forEach(System.out::println);
+    }
+
+    private Candlestick getCandlestick(String symbol, LocalDateTime now) throws RequestException {
+        Candlestick candlestick = dataForSymbol(symbol).get(now);
+        if (candlestick == null) {
+            throw new RequestException("No data for " + now, new IllegalArgumentException());
+        }
+        return candlestick;
+    }
+
     private NavigableMap<LocalDateTime, Candlestick> dataForSymbol(String symbol) {
         return "EUR_USD".equals(symbol) ? eurUsdData : gbpUsdData;
     }
 
-    public void printAccounts() {
-        accountById.values().forEach(System.out::println);
-    }
 }

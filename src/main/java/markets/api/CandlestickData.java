@@ -34,6 +34,14 @@ public class CandlestickData {
         return close;
     }
 
+    public boolean isGreen() {
+        return close.compareTo(open) > 0;
+    }
+
+    public boolean isRed() {
+        return close.compareTo(open) < 0;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -43,4 +51,5 @@ public class CandlestickData {
                 .add("close", close)
                 .toString();
     }
+
 }

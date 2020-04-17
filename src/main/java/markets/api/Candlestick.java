@@ -27,6 +27,14 @@ public class Candlestick {
         return ask;
     }
 
+    public boolean isGreen() {
+        return bid.isGreen();
+    }
+
+    public boolean isRed() {
+        return bid.isRed();
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -35,4 +43,5 @@ public class Candlestick {
                 .add("ask", ask)
                 .toString();
     }
+
 }

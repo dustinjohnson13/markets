@@ -1,6 +1,8 @@
 package markets;
 
 import com.google.common.base.MoreObjects;
+import markets.api.Candlestick;
+import markets.api.CandlestickData;
 import markets.api.Price;
 
 import java.math.BigDecimal;
@@ -111,11 +113,48 @@ public class Order {
                 return getTakeProfit().subtract(getPrice())
                         .multiply(BigDecimal.valueOf(getUnits()));
             } else {
-                return getTakeProfit().subtract( getPrice())
+                return getTakeProfit().subtract(getPrice())
                         .multiply(BigDecimal.valueOf(getUnits()));
             }
         }
 
         return null;
+    }
+
+    /**
+     * Checks whether there's a profit or loss on the candle low. If not, then checks the candle high.
+     * If the stop loss or take profit was hit at any point in the hourly candle, it'll return a non-null value.
+     * <p>
+     * If candle was green, it checks from low to high. If red, then high to low.
+     */
+    public BigDecimal profitLoss(Candlestick candlestick) {
+        CandlestickData bid = candlestick.getBid();
+        CandlestickData ask = candlestick.getAsk();
+
+        BigDecimal firstBid = bid.getLow();
+        BigDecimal firstAsk = ask.getLow();
+        BigDecimal secondAsk = ask.getHigh();
+        BigDecimal secondBid = bid.getHigh();
+
+        if (candlestick.isRed()) {
+            BigDecimal oldFirstBid = firstBid;
+            BigDecimal oldFirstAsk = firstAsk;
+
+            firstBid = secondBid;
+            firstAsk = secondAsk;
+
+            secondBid = oldFirstBid;
+            secondAsk = oldFirstAsk;
+        }
+
+        Price openPrice = new Price(firstBid, firstAsk);
+        BigDecimal profitLoss = profitLoss(openPrice);
+
+        if (profitLoss == null) {
+            Price closePrice = new Price(secondBid, secondAsk);
+            profitLoss = profitLoss(closePrice);
+        }
+
+        return profitLoss;
     }
 }
