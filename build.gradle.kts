@@ -19,6 +19,8 @@ dependencies {
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("com.oanda.v20:v20:3.0.25")
+    implementation("com.tictactec:ta-lib:0.4.0")
+
 
     testImplementation("org.codehaus.groovy:groovy-all:$groovyVersion")
     testImplementation("org.spockframework:spock-core:$spockVersion") {
