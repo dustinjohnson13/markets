@@ -21,6 +21,7 @@ import markets.api.Account;
 import markets.api.BrokerAPI;
 import markets.api.Candlestick;
 import markets.api.CandlestickData;
+import markets.api.Instrument;
 import markets.api.Price;
 import markets.api.RequestException;
 
@@ -64,10 +65,10 @@ public class OandaAPI implements BrokerAPI {
     }
 
     @Override
-    public Price price(String accountId, String symbol) throws RequestException {
+    public Price price(String accountId, Instrument instrument) throws RequestException {
         try {
             PricingGetResponse response = context.pricing.get(new PricingGetRequest(new AccountID(accountId),
-                    singleton(new InstrumentName(symbol))));
+                    singleton(new InstrumentName(instrument.getSymbol()))));
             ClientPrice oandaPrice = response.getPrices().iterator().next();
             return new Price(oandaPrice.getCloseoutBid().bigDecimalValue(), oandaPrice.getCloseoutAsk().bigDecimalValue());
         } catch (Exception e) {
@@ -76,10 +77,10 @@ public class OandaAPI implements BrokerAPI {
     }
 
     @Override
-    public void marketOrder(String accountId, String symbol, int units, BigDecimal stopLoss, BigDecimal takeProfit) throws RequestException {
+    public void marketOrder(String accountId, Instrument instrument, int units, BigDecimal stopLoss, BigDecimal takeProfit) throws RequestException {
         OrderCreateRequest orderCreateRequest = new OrderCreateRequest(new AccountID(accountId));
         orderCreateRequest.setOrder(new MarketOrderRequest()
-                .setInstrument(new InstrumentName(symbol))
+                .setInstrument(new InstrumentName(instrument.getSymbol()))
                 .setUnits(units)
                 .setStopLossOnFill(new StopLossDetails()
                         .setPrice(stopLoss)
@@ -104,7 +105,7 @@ public class OandaAPI implements BrokerAPI {
     }
 
     @Override
-    public List<Candlestick> candles(String symbol, LocalDateTime utcFrom, LocalDateTime utcTo) throws RequestException {
+    public List<Candlestick> candles(Instrument instrument, LocalDateTime utcFrom, LocalDateTime utcTo) throws RequestException {
 
         long hours = Duration.between(utcFrom, utcTo).toHours();
         long wholeRequests = hours / 5000;
@@ -121,7 +122,7 @@ public class OandaAPI implements BrokerAPI {
 
         List<InstrumentCandlesResponse> responses = new ArrayList<>(requestRanges.size());
         for (Range<LocalDateTime> requestRange : requestRanges) {
-            responses.add(retrieveCandles(symbol, requestRange.lowerEndpoint(), requestRange.upperEndpoint()));
+            responses.add(retrieveCandles(instrument, requestRange.lowerEndpoint(), requestRange.upperEndpoint()));
         }
 
         return responses.stream()
@@ -130,14 +131,14 @@ public class OandaAPI implements BrokerAPI {
                 .collect(Collectors.toList());
     }
 
-    private InstrumentCandlesResponse retrieveCandles(String symbol, LocalDateTime utcFrom, LocalDateTime utcTo) throws RequestException {
+    private InstrumentCandlesResponse retrieveCandles(Instrument instrument, LocalDateTime utcFrom, LocalDateTime utcTo) throws RequestException {
 
         String from = utcFrom.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")) + ".0Z";
         String to = utcTo.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")) + ".0Z";
 
         try {
             InstrumentCandlesResponse response = context.instrument.candles(new InstrumentCandlesRequest(
-                    new InstrumentName(symbol))
+                    new InstrumentName(instrument.getSymbol()))
                     .setAlignmentTimezone("America/New_York")
                     .setPrice("BA")
                     .setFrom(from)

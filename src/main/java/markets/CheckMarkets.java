@@ -2,112 +2,60 @@ package markets;
 
 import markets.api.Account;
 import markets.api.BrokerAPI;
+import markets.api.Instrument;
 import markets.api.MarketClock;
-import markets.api.Price;
 import markets.api.RequestException;
+import markets.api.Trader;
+import markets.traders.CoinFlip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 
-import static java.math.BigDecimal.valueOf;
-import static markets.TraderUtil.calculatePositionSize;
+import static markets.api.Instrument.EUR_USD;
+import static markets.api.Instrument.GBP_USD;
 
 public class CheckMarkets {
 
     private static final Logger LOG = LoggerFactory.getLogger(CheckMarkets.class);
 
-    private static final String EUR_USD = "EUR_USD";
-    private static final String GBP_USD = "GBP_USD";
-
     public void run(MarketClock clock, BrokerAPI api) {
 
         LOG.info("Current time: {}", clock.nowUTCDateTime());
 
-        List<String> accountIds = Arrays.asList(
-                "101-001-14085577-002", // Coin Toss 50/100
-                "101-001-14085577-003", // Coin Toss 50/150
-                "101-001-14085577-004", // Coin Toss 100/200
-                "101-001-14085577-005", // Coin Toss 100/300
+        List<Trader> traders = Arrays.asList(
+            new CoinFlip("101-001-14085577-002", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0100), GBP_USD),// Coin Toss 50/100
+            new CoinFlip("101-001-14085577-003", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0150), GBP_USD),// Coin Toss 50/150
+            new CoinFlip("101-001-14085577-004", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0200), GBP_USD),// Coin Toss 100/200
+            new CoinFlip("101-001-14085577-005", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0300), GBP_USD),// Coin Toss 100/300
 
-                "101-001-14085577-007", // Coin Toss 50/100
-                "101-001-14085577-008", // Coin Toss 50/150
-                "101-001-14085577-009", // Coin Toss 100/200
-                "101-001-14085577-010" // Coin Toss 100/300
+            new CoinFlip("101-001-14085577-007", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0100), EUR_USD),// Coin Toss 50/100
+            new CoinFlip("101-001-14085577-008", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0150), EUR_USD),// Coin Toss 50/150
+            new CoinFlip("101-001-14085577-009", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0200), EUR_USD),// Coin Toss 100/200
+            new CoinFlip("101-001-14085577-010", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0300), EUR_USD)// Coin Toss 100/300
         );
 
-        Map<String, List<Double>> targets = new HashMap<String, List<Double>>() {{
-            put("101-001-14085577-002", Arrays.asList(0.0050, 0.0100));
-            put("101-001-14085577-003", Arrays.asList(0.0050, 0.0150));
-            put("101-001-14085577-004", Arrays.asList(0.0100, 0.0200));
-            put("101-001-14085577-005", Arrays.asList(0.0100, 0.0300));
-            put("101-001-14085577-007", Arrays.asList(0.0050, 0.0100));
-            put("101-001-14085577-008", Arrays.asList(0.0050, 0.0150));
-            put("101-001-14085577-009", Arrays.asList(0.0100, 0.0200));
-            put("101-001-14085577-010", Arrays.asList(0.0100, 0.0300));
-        }};
-
-        Map<String, String> instruments = new HashMap<String, String>() {{
-            put("101-001-14085577-002", GBP_USD);
-            put("101-001-14085577-003", GBP_USD);
-            put("101-001-14085577-004", GBP_USD);
-            put("101-001-14085577-005", GBP_USD);
-            put("101-001-14085577-007", EUR_USD);
-            put("101-001-14085577-008", EUR_USD);
-            put("101-001-14085577-009", EUR_USD);
-            put("101-001-14085577-010", EUR_USD);
-        }};
-
-        for (String id : accountIds) {
-            String instrument = instruments.get(id);
-            List<Double> slTp = targets.get(id);
-            BigDecimal stopLossPips = valueOf(slTp.get(0));
-            BigDecimal takeProfitPips = valueOf(slTp.get(1));
+        traders.forEach(trader -> {
+            String id = trader.getId();
             Account account;
 
             try {
                 account = api.account(id);
             } catch (RequestException e) {
                 LOG.error("{}: Error accessing account!", id, e);
-                continue;
+                return;
             }
 
             int openPositions = account.getOpenPositionsCount();
             if (openPositions > 0) {
                 LOG.info("{} already has a position open.", id);
-                continue;
+                return;
             }
 
-            Price prices;
-            try {
-                prices = api.price(id, instrument);
-            } catch (RequestException e) {
-                LOG.error("{}: Error accessing pricing!", id, e);
-                continue;
-            }
-
-            boolean shortInstrument = new Random().nextBoolean();
-            BigDecimal price = shortInstrument ? prices.getCloseoutBid() : prices.getCloseoutAsk();
-            BigDecimal stopLoss = shortInstrument ? price.add(stopLossPips) : price.subtract(stopLossPips);
-
-            BigDecimal balanceDollars = account.getBalance();
-            int units = calculatePositionSize(balanceDollars, valueOf(0.005), price, stopLoss);  // Risk half a percent
-            int orderUnits = shortInstrument ? -units : units;
-
-            BigDecimal takeProfit = shortInstrument ? price.subtract(takeProfitPips) :
-                    price.add(takeProfitPips);
-
-            try {
-                api.marketOrder(id, instrument, orderUnits, stopLoss, takeProfit);
-            } catch (RequestException e) {
-                LOG.error("{}: Error opening order!", id, e);
-            }
-        }
+            trader.update(account, api);
+        });
     }
 
 }

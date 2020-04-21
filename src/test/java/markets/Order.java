@@ -3,28 +3,29 @@ package markets;
 import com.google.common.base.MoreObjects;
 import markets.api.Candlestick;
 import markets.api.CandlestickData;
+import markets.api.Instrument;
 import markets.api.Price;
 
 import java.math.BigDecimal;
 import java.util.Objects;
 
 public class Order {
-    private final String symbol;
+    private final Instrument instrument;
     private final int units;
     private final BigDecimal price;
     private final BigDecimal stopLoss;
     private final BigDecimal takeProfit;
 
-    public Order(String symbol, int units, BigDecimal price, BigDecimal stopLoss, BigDecimal takeProfit) {
-        this.symbol = symbol;
+    public Order(Instrument instrument, int units, BigDecimal price, BigDecimal stopLoss, BigDecimal takeProfit) {
+        this.instrument = instrument;
         this.units = units;
         this.price = price;
         this.stopLoss = stopLoss;
         this.takeProfit = takeProfit;
     }
 
-    public String getSymbol() {
-        return symbol;
+    public Instrument getInstrument() {
+        return instrument;
     }
 
     public int getUnits() {
@@ -49,7 +50,7 @@ public class Order {
         if (o == null || getClass() != o.getClass()) return false;
         Order order = (Order) o;
         return units == order.units &&
-                Objects.equals(symbol, order.symbol) &&
+                Objects.equals(instrument, order.instrument) &&
                 Objects.equals(price, order.price) &&
                 Objects.equals(stopLoss, order.stopLoss) &&
                 Objects.equals(takeProfit, order.takeProfit);
@@ -57,13 +58,13 @@ public class Order {
 
     @Override
     public int hashCode() {
-        return Objects.hash(symbol, units, price, stopLoss, takeProfit);
+        return Objects.hash(instrument, units, price, stopLoss, takeProfit);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("symbol", symbol)
+                .add("instrument", instrument)
                 .add("units", units)
                 .add("price", price)
                 .add("stopLoss", stopLoss)

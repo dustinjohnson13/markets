@@ -3,6 +3,7 @@ package markets.oanda.util;
 import markets.api.BrokerAPI;
 import markets.api.Candlestick;
 import markets.api.CandlestickData;
+import markets.api.Instrument;
 import markets.api.RequestException;
 import markets.oanda.OandaAPI;
 
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static java.time.Month.JANUARY;
+import static markets.api.Instrument.GBP_USD;
 
 public class Util {
 
@@ -24,8 +26,8 @@ public class Util {
 
         StringBuilder sb = new StringBuilder();
 
-        String symbol = "GBP_USD";
-        List<Candlestick> candles = api.candles(symbol, from, to);
+        Instrument instrument = GBP_USD;
+        List<Candlestick> candles = api.candles(instrument, from, to);
         candles.forEach(it -> {
             CandlestickData bid = it.getBid();
             CandlestickData ask = it.getAsk();
@@ -40,7 +42,7 @@ public class Util {
                     .append(ask.getClose()).append("\n");
         });
 
-        Files.write(new File(symbol + "-2010-2020.csv").toPath(), sb.toString().getBytes());
+        Files.write(new File(instrument.getSymbol() + "-2010-2020.csv").toPath(), sb.toString().getBytes());
     }
 
 }

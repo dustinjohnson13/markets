@@ -3,6 +3,7 @@ package markets;
 import markets.api.Account;
 import markets.api.BrokerAPI;
 import markets.api.Candlestick;
+import markets.api.Instrument;
 import markets.api.MarketClock;
 import markets.api.Price;
 import markets.api.RequestException;
@@ -17,6 +18,7 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 
 import static java.util.Comparator.comparing;
+import static markets.api.Instrument.EUR_USD;
 
 public class ForexBacktesterAPI implements BrokerAPI {
 
@@ -54,7 +56,7 @@ public class ForexBacktesterAPI implements BrokerAPI {
 
             Candlestick candlestick;
             try {
-                candlestick = getCandlestick(order.getSymbol(), marketClock.nowUTCDateTime());
+                candlestick = getCandlestick(order.getInstrument(), marketClock.nowUTCDateTime());
             } catch (RequestException e) {
                 // No data for this symbol + time
                 continue;
@@ -78,30 +80,30 @@ public class ForexBacktesterAPI implements BrokerAPI {
     }
 
     @Override
-    public Price price(String accountId, String symbol) throws RequestException {
+    public Price price(String accountId, Instrument instrument) throws RequestException {
         LocalDateTime now = marketClock.nowUTCDateTime();
 
-        Candlestick candlestick = getCandlestick(symbol, now);
+        Candlestick candlestick = getCandlestick(instrument, now);
 
         return new Price(candlestick.getBid().getOpen(), candlestick.getAsk().getOpen());
     }
 
     @Override
-    public void marketOrder(String accountId, String symbol, int units, BigDecimal stopLoss, BigDecimal takeProfit) throws RequestException {
-        Price price = price(accountId, symbol);
+    public void marketOrder(String accountId, Instrument instrument, int units, BigDecimal stopLoss, BigDecimal takeProfit) throws RequestException {
+        Price price = price(accountId, instrument);
         BigDecimal currentPrice = units > 1 ? price.getCloseoutAsk() : price.getCloseoutBid();
 //        BigDecimal costBasis = currentPrice.multiply(BigDecimal.valueOf(abs(units)));
 
         Account account = account(accountId);
         Account newAccount = new Account(accountId, account.getOpenPositionsCount() + 1, account.getBalance()/*.subtract(costBasis)*/);
-        Order order = new Order(symbol, units, currentPrice, stopLoss, takeProfit);
+        Order order = new Order(instrument, units, currentPrice, stopLoss, takeProfit);
 
         accountById.put(accountId, newAccount);
         openOrderByAccountId.put(accountId, order);
     }
 
     @Override
-    public List<Candlestick> candles(String symbol, LocalDateTime easternFrom, LocalDateTime easternTo) throws RequestException {
+    public List<Candlestick> candles(Instrument instrument, LocalDateTime easternFrom, LocalDateTime easternTo) throws RequestException {
         return null;
     }
 
@@ -112,16 +114,16 @@ public class ForexBacktesterAPI implements BrokerAPI {
                 .forEach(System.out::println);
     }
 
-    private Candlestick getCandlestick(String symbol, LocalDateTime now) throws RequestException {
-        Candlestick candlestick = dataForSymbol(symbol).get(now);
+    private Candlestick getCandlestick(Instrument instrument, LocalDateTime now) throws RequestException {
+        Candlestick candlestick = dataForSymbol(instrument).get(now);
         if (candlestick == null) {
             throw new RequestException("No data for " + now, new IllegalArgumentException());
         }
         return candlestick;
     }
 
-    private NavigableMap<LocalDateTime, Candlestick> dataForSymbol(String symbol) {
-        return "EUR_USD".equals(symbol) ? eurUsdData : gbpUsdData;
+    private NavigableMap<LocalDateTime, Candlestick> dataForSymbol(Instrument instrument) {
+        return EUR_USD.equals(instrument) ? eurUsdData : gbpUsdData;
     }
 
 }
