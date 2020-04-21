@@ -10,6 +10,11 @@ repositories {
     mavenCentral()
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
 val groovyVersion = "2.4.8"
 val slf4jVersion = "1.7.25"
 val spockVersion = "1.1-groovy-2.4-rc-3"
