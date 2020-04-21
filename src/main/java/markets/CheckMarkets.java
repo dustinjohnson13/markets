@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import static java.math.RoundingMode.HALF_DOWN;
+import static java.math.BigDecimal.valueOf;
+import static markets.TraderUtil.calculatePositionSize;
 
 public class CheckMarkets {
 
@@ -65,8 +66,8 @@ public class CheckMarkets {
         for (String id : accountIds) {
             String instrument = instruments.get(id);
             List<Double> slTp = targets.get(id);
-            BigDecimal stopLossPips = BigDecimal.valueOf(slTp.get(0));
-            BigDecimal takeProfitPips = BigDecimal.valueOf(slTp.get(1));
+            BigDecimal stopLossPips = valueOf(slTp.get(0));
+            BigDecimal takeProfitPips = valueOf(slTp.get(1));
             Account account;
 
             try {
@@ -92,16 +93,12 @@ public class CheckMarkets {
 
             boolean shortInstrument = new Random().nextBoolean();
             BigDecimal price = shortInstrument ? prices.getCloseoutBid() : prices.getCloseoutAsk();
+            BigDecimal stopLoss = shortInstrument ? price.add(stopLossPips) : price.subtract(stopLossPips);
 
             BigDecimal balanceDollars = account.getBalance();
-            int units = balanceDollars
-                    .multiply(BigDecimal.valueOf(0.005)) // Risk half a percent
-                    .divide(stopLossPips, 4, HALF_DOWN)
-                    .intValue();
-
+            int units = calculatePositionSize(balanceDollars, valueOf(0.005), price, stopLoss);  // Risk half a percent
             int orderUnits = shortInstrument ? -units : units;
-            BigDecimal stopLoss = shortInstrument ? price.add(stopLossPips) :
-                    price.subtract(stopLossPips);
+
             BigDecimal takeProfit = shortInstrument ? price.subtract(takeProfitPips) :
                     price.add(takeProfitPips);
 
