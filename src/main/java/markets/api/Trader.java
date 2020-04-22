@@ -6,6 +6,6 @@ public interface Trader {
 
     String getName();
 
-    void update(Account account, BrokerAPI api);
+    void update(Account account, BrokerAPI api, MarketClock clock);
 
 }

@@ -4,6 +4,7 @@ import com.google.common.base.MoreObjects;
 import markets.api.Account;
 import markets.api.BrokerAPI;
 import markets.api.Instrument;
+import markets.api.MarketClock;
 import markets.api.Price;
 import markets.api.RequestException;
 import markets.api.Trader;
@@ -45,7 +46,7 @@ public class CoinFlip implements Trader {
     }
 
     @Override
-    public void update(Account account, BrokerAPI api) {
+    public void update(Account account, BrokerAPI api, MarketClock clock) {
         Price prices;
         try {
             prices = api.price(id, instrument);

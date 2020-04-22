@@ -13,6 +13,7 @@ import markets.api.Trader;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -110,8 +111,11 @@ public class ForexBacktesterAPI implements BrokerAPI {
     }
 
     @Override
-    public List<Candlestick> candles(Instrument instrument, LocalDateTime easternFrom, LocalDateTime easternTo) throws RequestException {
-        return null;
+    public List<Candlestick> candles(Instrument instrument, LocalDateTime utcFrom, LocalDateTime utcTo) throws RequestException {
+        if (marketClock.nowUTCDateTime().isBefore(utcTo)) {
+            throw new IllegalArgumentException("HTTP 400 : Invalid value specified for 'to'. Time is in the future");
+        }
+        return new ArrayList<>(instrumentData(instrument).subMap(utcFrom, utcTo).values());
     }
 
     public void printAccounts() {
@@ -122,14 +126,14 @@ public class ForexBacktesterAPI implements BrokerAPI {
     }
 
     private Candlestick getCandlestick(Instrument instrument, LocalDateTime now) throws RequestException {
-        Candlestick candlestick = dataForSymbol(instrument).get(now);
+        Candlestick candlestick = instrumentData(instrument).get(now);
         if (candlestick == null) {
             throw new RequestException("No data for " + now, new IllegalArgumentException());
         }
         return candlestick;
     }
 
-    private NavigableMap<LocalDateTime, Candlestick> dataForSymbol(Instrument instrument) {
+    private NavigableMap<LocalDateTime, Candlestick> instrumentData(Instrument instrument) {
         return EUR_USD.equals(instrument) ? eurUsdData : gbpUsdData;
     }
 

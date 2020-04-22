@@ -12,5 +12,5 @@ public interface BrokerAPI {
 
     void marketOrder(String accountId, Instrument instrument, int units, BigDecimal stopLoss, BigDecimal takeProfit) throws RequestException;
 
-    List<Candlestick> candles(Instrument instrument, LocalDateTime easternFrom, LocalDateTime easternTo) throws RequestException;
+    List<Candlestick> candles(Instrument instrument, LocalDateTime utcFrom, LocalDateTime utcTo) throws RequestException;
 }

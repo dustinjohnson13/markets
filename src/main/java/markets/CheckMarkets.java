@@ -6,6 +6,7 @@ import markets.api.MarketClock;
 import markets.api.RequestException;
 import markets.api.Trader;
 import markets.traders.CoinFlip;
+import markets.traders.RandomBollingerBand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,10 @@ public class CheckMarkets {
             new CoinFlip("101-001-14085577-007", "Coin Toss 50/100", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0100), EUR_USD),
             new CoinFlip("101-001-14085577-008", "Coin Toss 50/150", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0150), EUR_USD),
             new CoinFlip("101-001-14085577-009", "Coin Toss 100/200", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0200), EUR_USD),
-            new CoinFlip("101-001-14085577-010", "Coin Toss 100/300", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0300), EUR_USD)
+            new CoinFlip("101-001-14085577-010", "Coin Toss 100/300", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0300), EUR_USD),
+
+            new RandomBollingerBand("101-001-14085577-011", "Random Bollinger Band (EUR)", EUR_USD),
+            new RandomBollingerBand("101-001-14085577-012", "Random Bollinger Band (GBP)", GBP_USD)
     );
 
     public List<Trader> getTraders() {
@@ -57,7 +61,7 @@ public class CheckMarkets {
                 return;
             }
 
-            trader.update(account, api);
+            trader.update(account, api, clock);
         });
     }
 
