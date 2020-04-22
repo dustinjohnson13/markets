@@ -1,5 +1,6 @@
 package markets.traders;
 
+import com.google.common.base.MoreObjects;
 import markets.api.Account;
 import markets.api.BrokerAPI;
 import markets.api.Instrument;
@@ -20,12 +21,14 @@ public class CoinFlip implements Trader {
     private static final Logger LOG = LoggerFactory.getLogger(CoinFlip.class);
 
     private final String id;
+    private final String name;
     private final BigDecimal stopLossPips;
     private final BigDecimal takeProfitPips;
     private final Instrument instrument;
 
-    public CoinFlip(String id, BigDecimal stopLossPips, BigDecimal takeProfitPips, Instrument instrument) {
+    public CoinFlip(String id, String name, BigDecimal stopLossPips, BigDecimal takeProfitPips, Instrument instrument) {
         this.id = id;
+        this.name = name;
         this.stopLossPips = stopLossPips;
         this.takeProfitPips = takeProfitPips;
         this.instrument = instrument;
@@ -34,6 +37,11 @@ public class CoinFlip implements Trader {
     @Override
     public String getId() {
         return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -62,5 +70,16 @@ public class CoinFlip implements Trader {
         } catch (RequestException e) {
             LOG.error("{}: Error opening order!", id, e);
         }
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("id", id)
+                .add("name", name)
+                .add("stopLossPips", stopLossPips)
+                .add("takeProfitPips", takeProfitPips)
+                .add("instrument", instrument)
+                .toString();
     }
 }

@@ -18,7 +18,8 @@ class ForexBacktester {
         NavigableMap<LocalDateTime, Candlestick> eurUsdData = loadInstrumentData("EUR_USD");
         NavigableMap<LocalDateTime, Candlestick> gbpUsdData = loadInstrumentData("GBP_USD");
 
-        def api = new ForexBacktesterAPI(null, eurUsdData, gbpUsdData)
+        def checkMarkets = new CheckMarkets()
+        def api = new ForexBacktesterAPI(null, checkMarkets.getTraders(), eurUsdData, gbpUsdData)
 
         eurUsdData.keySet().each { currentTime ->
             def fixedTime = Clock.fixed(currentTime.toInstant(UTC), ZoneId.of("UTC"))
@@ -26,7 +27,7 @@ class ForexBacktester {
 
             api.update(marketClock)
 
-            new CheckMarkets().run(marketClock, api)
+            checkMarkets.run(marketClock, api)
         }
 
         api.printAccounts();

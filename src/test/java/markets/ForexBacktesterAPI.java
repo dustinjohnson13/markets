@@ -1,5 +1,7 @@
 package markets;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import markets.api.Account;
 import markets.api.BrokerAPI;
 import markets.api.Candlestick;
@@ -7,6 +9,7 @@ import markets.api.Instrument;
 import markets.api.MarketClock;
 import markets.api.Price;
 import markets.api.RequestException;
+import markets.api.Trader;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,6 +20,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 
+import static java.lang.System.out;
 import static java.util.Comparator.comparing;
 import static markets.api.Instrument.EUR_USD;
 
@@ -27,14 +31,17 @@ public class ForexBacktesterAPI implements BrokerAPI {
     private final Map<String, Account> accountById = new HashMap<>();
     private final Map<String, Order> openOrderByAccountId = new HashMap<>();
 
+    private final ImmutableMap<String, Trader> tradersById;
     private final NavigableMap<LocalDateTime, Candlestick> eurUsdData;
     private final NavigableMap<LocalDateTime, Candlestick> gbpUsdData;
     private MarketClock marketClock;
 
     public ForexBacktesterAPI(MarketClock marketClock,
+                              List<Trader> traders,
                               NavigableMap<LocalDateTime, Candlestick> eurUsdData,
                               NavigableMap<LocalDateTime, Candlestick> gbpUsdData) {
         this.marketClock = marketClock;
+        this.tradersById = Maps.uniqueIndex(traders, Trader::getId);
         this.eurUsdData = eurUsdData;
         this.gbpUsdData = gbpUsdData;
     }
@@ -111,7 +118,7 @@ public class ForexBacktesterAPI implements BrokerAPI {
         accountById.values()
                 .stream()
                 .sorted(comparing(Account::getId))
-                .forEach(System.out::println);
+                .forEach(it -> out.println(tradersById.get(it.getId()).getName() + ": " + it));
     }
 
     private Candlestick getCandlestick(Instrument instrument, LocalDateTime now) throws RequestException {

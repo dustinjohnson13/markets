@@ -2,7 +2,6 @@ package markets;
 
 import markets.api.Account;
 import markets.api.BrokerAPI;
-import markets.api.Instrument;
 import markets.api.MarketClock;
 import markets.api.RequestException;
 import markets.api.Trader;
@@ -21,21 +20,25 @@ public class CheckMarkets {
 
     private static final Logger LOG = LoggerFactory.getLogger(CheckMarkets.class);
 
+    private final List<Trader> traders = Arrays.asList(
+            new CoinFlip("101-001-14085577-002", "Coin Toss 50/100 (GBP)", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0100), GBP_USD),
+            new CoinFlip("101-001-14085577-003", "Coin Toss 50/150 (GBP)", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0150), GBP_USD),
+            new CoinFlip("101-001-14085577-004", "Coin Toss 100/200 (GBP)", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0200), GBP_USD),
+            new CoinFlip("101-001-14085577-005", "Coin Toss 100/300 (GBP)", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0300), GBP_USD),
+
+            new CoinFlip("101-001-14085577-007", "Coin Toss 50/100", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0100), EUR_USD),
+            new CoinFlip("101-001-14085577-008", "Coin Toss 50/150", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0150), EUR_USD),
+            new CoinFlip("101-001-14085577-009", "Coin Toss 100/200", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0200), EUR_USD),
+            new CoinFlip("101-001-14085577-010", "Coin Toss 100/300", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0300), EUR_USD)
+    );
+
+    public List<Trader> getTraders() {
+        return traders;
+    }
+
     public void run(MarketClock clock, BrokerAPI api) {
 
         LOG.info("Current time: {}", clock.nowUTCDateTime());
-
-        List<Trader> traders = Arrays.asList(
-            new CoinFlip("101-001-14085577-002", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0100), GBP_USD),// Coin Toss 50/100
-            new CoinFlip("101-001-14085577-003", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0150), GBP_USD),// Coin Toss 50/150
-            new CoinFlip("101-001-14085577-004", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0200), GBP_USD),// Coin Toss 100/200
-            new CoinFlip("101-001-14085577-005", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0300), GBP_USD),// Coin Toss 100/300
-
-            new CoinFlip("101-001-14085577-007", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0100), EUR_USD),// Coin Toss 50/100
-            new CoinFlip("101-001-14085577-008", BigDecimal.valueOf(0.0050), BigDecimal.valueOf(0.0150), EUR_USD),// Coin Toss 50/150
-            new CoinFlip("101-001-14085577-009", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0200), EUR_USD),// Coin Toss 100/200
-            new CoinFlip("101-001-14085577-010", BigDecimal.valueOf(0.0100), BigDecimal.valueOf(0.0300), EUR_USD)// Coin Toss 100/300
-        );
 
         traders.forEach(trader -> {
             String id = trader.getId();
