@@ -38,20 +38,18 @@ import static java.util.Collections.singleton;
 public class OandaAPI implements BrokerAPI {
 
     private static final String ENDPOINT = "https://api-fxpractice.oanda.com";
-    // TODO: Token should be injected
-    private static final String TOKEN = "5e02279e018a8b4e9869ea5fb17bfc88-eb15bcedffb3eb62fc26252a2d3f2841";
 
     private final Context context;
 
-    private OandaAPI() {
+    private OandaAPI(String oandaPracticeApiToken, String oandaLiveApiToken) {
         context = new ContextBuilder(ENDPOINT)
                 .setApplication("")
-                .setToken(TOKEN)
+                .setToken(oandaPracticeApiToken)
                 .build();
     }
 
-    public static BrokerAPI create() {
-        return new OandaAPI();
+    public static BrokerAPI create(String oandaPracticeApiToken, String oandaLiveApiToken) {
+        return new OandaAPI(oandaPracticeApiToken, oandaLiveApiToken);
     }
 
     @Override

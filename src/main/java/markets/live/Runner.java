@@ -37,9 +37,18 @@ public class Runner {
             new TraderWithId("101-001-14085577-012", new RandomBollingerBand("Random Bollinger Band (GBP)", GBP_USD))
     );
 
+    /**
+     * @param args
+     * 
+     * [0] = Oanda practice api token
+     * [1] = Oanda live api token
+     */
     public static void main(String[] args) {
+        String oandaPracticeApiToken = args[0];
+        String oandaLiveApiToken = args[1];
+
         MarketClock clock = new MarketClock(systemUTC());
-        BrokerAPI api = OandaAPI.create();
+        BrokerAPI api = OandaAPI.create(oandaPracticeApiToken, oandaLiveApiToken);
 
         new CheckMarkets().run(clock, api, traders);
     }

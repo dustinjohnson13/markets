@@ -9,7 +9,11 @@ stage('Test') {
         currentBuild.result = "SUCCESS"
 
         try {
-            sh "./gradlew clean run --args \"${env.OANDA_API_TOKEN_PRACTICE} ${env.OANDA_API_TOKEN_LIVE}\""
+            try {
+                sh './gradlew build'
+            } finally {
+                junit "build/test-results/**/*.xml"
+            }
         } catch (err) {
             currentBuild.result = "FAILURE"
 
