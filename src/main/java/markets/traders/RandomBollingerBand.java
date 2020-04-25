@@ -28,19 +28,12 @@ public class RandomBollingerBand implements Trader {
 
     private static final Logger LOG = LoggerFactory.getLogger(RandomBollingerBand.class);
 
-    private final String id;
     private final String name;
     private final Instrument instrument;
 
-    public RandomBollingerBand(String id, String name, Instrument instrument) {
-        this.id = id;
+    public RandomBollingerBand(String name, Instrument instrument) {
         this.name = name;
         this.instrument = instrument;
-    }
-
-    @Override
-    public String getId() {
-        return id;
     }
 
     @Override
@@ -50,6 +43,7 @@ public class RandomBollingerBand implements Trader {
 
     @Override
     public void update(Account account, BrokerAPI api, MarketClock clock) {
+        String id = account.getId();
         Price prices;
         try {
             prices = api.price(id, instrument);
@@ -111,7 +105,6 @@ public class RandomBollingerBand implements Trader {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("id", id)
                 .add("name", name)
                 .add("instrument", instrument)
                 .toString();

@@ -1,9 +1,12 @@
 package markets
 
+import com.google.common.collect.HashMultimap
+import com.google.common.collect.Multimap
 import markets.api.Candlestick
 import markets.api.CandlestickData
 import markets.api.MarketClock
 import markets.api.Trader
+import markets.api.TraderWithId
 import markets.traders.RandomBollingerBand
 
 import java.time.Clock
@@ -17,18 +20,28 @@ import static markets.api.Instrument.GBP_USD
 
 class ForexBacktester {
 
-    private static final List<Trader> traders = Arrays.asList(
-            new RandomBollingerBand("101-001-14085577-011", "Random Bollinger Band (EUR)", EUR_USD),
-            new RandomBollingerBand("101-001-14085577-012", "Random Bollinger Band (GBP)", GBP_USD)
+    private static final int INSTANCES_PER_TRADER = 10;
+
+    private static final List<Trader> traderTemplates = Arrays.asList(
+            new RandomBollingerBand("Random Bollinger Band (EUR)", EUR_USD),
+            new RandomBollingerBand("Random Bollinger Band (GBP)", GBP_USD)
     );
 
     static void main(String[] args) {
+
+        Multimap<String, TraderWithId> tradersByName = HashMultimap.create();
+        traderTemplates.forEach({
+            for (int i = 0; i < INSTANCES_PER_TRADER; i++) {
+                String id = it.getName() + "[" + i + "]"
+                tradersByName.put(it.getName(), new TraderWithId(id, it));
+            }
+        })
 
         NavigableMap<LocalDateTime, Candlestick> eurUsdData = loadInstrumentData("EUR_USD");
         NavigableMap<LocalDateTime, Candlestick> gbpUsdData = loadInstrumentData("GBP_USD");
 
         def checkMarkets = new CheckMarkets()
-        def api = new ForexBacktesterAPI(null, traders, eurUsdData, gbpUsdData)
+        def api = new ForexBacktesterAPI(null, tradersByName.values(), eurUsdData, gbpUsdData)
 
         eurUsdData.keySet().each { currentTime ->
             def fixedTime = Clock.fixed(currentTime.toInstant(UTC), ZoneId.of("UTC"))
@@ -36,7 +49,7 @@ class ForexBacktester {
 
             api.update(marketClock)
 
-            checkMarkets.run(marketClock, api, traders)
+            checkMarkets.run(marketClock, api, tradersByName.values())
         }
 
         api.printAccounts();

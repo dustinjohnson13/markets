@@ -4,17 +4,17 @@ import markets.api.Account;
 import markets.api.BrokerAPI;
 import markets.api.MarketClock;
 import markets.api.RequestException;
-import markets.api.Trader;
+import markets.api.TraderWithId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Collection;
 
 public class CheckMarkets {
 
     private static final Logger LOG = LoggerFactory.getLogger(CheckMarkets.class);
 
-    public void run(MarketClock clock, BrokerAPI api, List<Trader> traders) {
+    public void run(MarketClock clock, BrokerAPI api, Collection<TraderWithId> traders) {
 
         LOG.info("Current time: {}", clock.nowUTCDateTime());
 

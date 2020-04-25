@@ -9,11 +9,12 @@ import markets.api.Instrument;
 import markets.api.MarketClock;
 import markets.api.Price;
 import markets.api.RequestException;
-import markets.api.Trader;
+import markets.api.TraderWithId;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -32,17 +33,17 @@ public class ForexBacktesterAPI implements BrokerAPI {
     private final Map<String, Account> accountById = new HashMap<>();
     private final Map<String, Order> openOrderByAccountId = new HashMap<>();
 
-    private final ImmutableMap<String, Trader> tradersById;
+    private final ImmutableMap<String, TraderWithId> tradersById;
     private final NavigableMap<LocalDateTime, Candlestick> eurUsdData;
     private final NavigableMap<LocalDateTime, Candlestick> gbpUsdData;
     private MarketClock marketClock;
 
     public ForexBacktesterAPI(MarketClock marketClock,
-                              List<Trader> traders,
+                              Collection<TraderWithId> traders,
                               NavigableMap<LocalDateTime, Candlestick> eurUsdData,
                               NavigableMap<LocalDateTime, Candlestick> gbpUsdData) {
         this.marketClock = marketClock;
-        this.tradersById = Maps.uniqueIndex(traders, Trader::getId);
+        this.tradersById = Maps.uniqueIndex(traders, TraderWithId::getId);
         this.eurUsdData = eurUsdData;
         this.gbpUsdData = gbpUsdData;
     }
