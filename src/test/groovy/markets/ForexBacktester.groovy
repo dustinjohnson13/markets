@@ -3,6 +3,8 @@ package markets
 import markets.api.Candlestick
 import markets.api.CandlestickData
 import markets.api.MarketClock
+import markets.api.Trader
+import markets.traders.RandomBollingerBand
 
 import java.time.Clock
 import java.time.LocalDateTime
@@ -10,8 +12,15 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 import static java.time.ZoneOffset.UTC
+import static markets.api.Instrument.EUR_USD
+import static markets.api.Instrument.GBP_USD
 
 class ForexBacktester {
+
+    private static final List<Trader> traders = Arrays.asList(
+            new RandomBollingerBand("101-001-14085577-011", "Random Bollinger Band (EUR)", EUR_USD),
+            new RandomBollingerBand("101-001-14085577-012", "Random Bollinger Band (GBP)", GBP_USD)
+    );
 
     static void main(String[] args) {
 
@@ -19,7 +28,7 @@ class ForexBacktester {
         NavigableMap<LocalDateTime, Candlestick> gbpUsdData = loadInstrumentData("GBP_USD");
 
         def checkMarkets = new CheckMarkets()
-        def api = new ForexBacktesterAPI(null, checkMarkets.getTraders(), eurUsdData, gbpUsdData)
+        def api = new ForexBacktesterAPI(null, traders, eurUsdData, gbpUsdData)
 
         eurUsdData.keySet().each { currentTime ->
             def fixedTime = Clock.fixed(currentTime.toInstant(UTC), ZoneId.of("UTC"))
@@ -27,7 +36,7 @@ class ForexBacktester {
 
             api.update(marketClock)
 
-            checkMarkets.run(marketClock, api)
+            checkMarkets.run(marketClock, api, traders)
         }
 
         api.printAccounts();
